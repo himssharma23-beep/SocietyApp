@@ -98,7 +98,7 @@ public class CheckController : Controller
         // totals
         var totalDue = monthRows.Sum(r => r.Due);
         var totalPaid = totalGiven;
-        var pendingTotal = Math.Max(totalDue - totalPaid, 0m);
+        var pendingTotal = (totalDue - totalPaid);
 
         // ✅ society-wide data (ignore soft-deleted)
         var societyExpenses = _context.Expenses
