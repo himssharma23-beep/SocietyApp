@@ -10,5 +10,7 @@ namespace SocietyApp.Data
         public DbSet<Member> Members { get; set; }
         public DbSet<Contribution> Contributions { get; set; }
         public DbSet<Expense> Expenses { get; set; }
+        public DbSet<AdminUser> AdminUsers { get; set; }
+
     }
 }

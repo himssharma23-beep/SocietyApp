@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SocietyApp.Data;
 using SocietyApp.Models;
@@ -23,20 +24,52 @@ public class AdminController : Controller
     public IActionResult Login() => View();
 
     [HttpPost]
-    public IActionResult Login(string password)
+    public IActionResult Login(string username, string password)
     {
-        if (password == _config["Admin:Password"])
+        var user = _context.AdminUsers.FirstOrDefault(u => u.Username == username && !u.IsDeleted);
+        if (user == null)
         {
-            HttpContext.Session.SetString("Admin", "true");
+            ViewBag.Error = "Invalid credentials";
+            return View();
+        }
+
+        var hasher = new PasswordHasher<AdminUser>();
+        var verify = hasher.VerifyHashedPassword(user, user.PasswordHash, password);
+        if (verify == PasswordVerificationResult.Success)
+        {
+            HttpContext.Session.SetInt32("AdminUserId", user.Id);
             return RedirectToAction("Dashboard");
         }
-        ViewBag.Error = "Invalid password";
+
+        ViewBag.Error = "Invalid credentials";
         return View();
     }
+    public IActionResult Logout()
+    {
+        HttpContext.Session.Remove("AdminUserId");
+        return RedirectToAction("Login");
+    }
+    private AdminUser? CurrentAdmin()
+    {
+        var id = HttpContext.Session.GetInt32("AdminUserId");
+        if (id == null) return null;
+        return _context.AdminUsers.FirstOrDefault(u => u.Id == id && !u.IsDeleted);
+    }
+
+    private bool HasPermission(Func<AdminUser, bool> permissionCheck)
+    {
+        var u = CurrentAdmin();
+        if (u == null) return false;
+        // super admin bypass
+        if (u.IsSuperAdmin) return true;
+        return permissionCheck(u);
+    }
+
 
     public IActionResult Dashboard()
     {
-        if (!IsAuthorized()) return RedirectToAction("Login");
+        if (!HasPermission(u => u.CanView)) return Forbid();
+        
         ViewBag.Members = _context.Members.Where(m => !m.IsDeleted).ToList();
         ViewBag.Expenses = _context.Expenses.Where(e => !e.IsDeleted).OrderByDescending(e => e.Date).ToList();
         ViewBag.Contributions = _context.Contributions
@@ -44,13 +77,15 @@ public class AdminController : Controller
                                        .Include(c => c.Member)
                                        .OrderByDescending(c => c.Date)
                                        .ToList();
-
+        var current = CurrentAdmin();
+        ViewBag.CurrentAdmin = current;
         return View();
     }
 
     [HttpPost]
     public IActionResult AddMember(string name, string phone, string houseNumber,decimal totalToGive, decimal monthlyAmount, string? startDate)
     {
+        if (!HasPermission(u => u.CanAddMember)) return Forbid();
         DateTime start;
         if (!string.IsNullOrEmpty(startDate) && DateTime.TryParseExact(startDate + "-01", "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out start))
         {
@@ -70,6 +105,7 @@ public class AdminController : Controller
     [HttpPost]
     public IActionResult AddContribution(int memberId, decimal amount, string? date)
     {
+        if (!HasPermission(u => u.CanAddContribution)) return Forbid();
         DateTime contribDate;
 
         if (!string.IsNullOrEmpty(date) && DateTime.TryParse(date, out var parsed))
@@ -88,6 +124,7 @@ public class AdminController : Controller
     [HttpPost]
     public IActionResult AddExpense(string comment, decimal amount, string? date)
     {
+        if (!HasPermission(u => u.CanAddExpense)) return Forbid();
         DateTime expenseDate;
 
         if (!string.IsNullOrEmpty(date) && DateTime.TryParse(date, out var parsed))
@@ -106,6 +143,7 @@ public class AdminController : Controller
     [HttpPost]
     public IActionResult EditMember(int id, string name, string phone, string houseNumber, decimal monthlyAmount, string? startDate)
     {
+        if (!HasPermission(u => u.CanAddMember)) return Forbid();
         var member = _context.Members.FirstOrDefault(m => m.Id == id);
         if (member != null)
         {
@@ -130,6 +168,7 @@ public class AdminController : Controller
     [HttpPost]
     public IActionResult EditExpense(int id, string comment, decimal amount, string? date)
     {
+        if (!HasPermission(u => u.CanAddExpense)) return Forbid();
         var exp = _context.Expenses.FirstOrDefault(e => e.Id == id);
         if (exp != null)
         {
@@ -148,6 +187,7 @@ public class AdminController : Controller
     [HttpPost]
     public IActionResult EditContribution(int id, decimal amount, string? date)
     {
+        if (!HasPermission(u => u.CanAddContribution)) return Forbid();
         var contrib = _context.Contributions.FirstOrDefault(c => c.Id == id);
         if (contrib != null)
         {
@@ -166,6 +206,7 @@ public class AdminController : Controller
     [HttpPost]
     public IActionResult DeleteMember(int id)
     {
+        if (!HasPermission(u => u.CanDelete)) return Forbid();
         var member = _context.Members
             .Include(m => m.Contributions)
             .FirstOrDefault(m => m.Id == id);
@@ -191,6 +232,7 @@ public class AdminController : Controller
     [HttpPost]
     public IActionResult DeleteContribution(int id)
     {
+        if (!HasPermission(u => u.CanDelete)) return Forbid();
         var contrib = _context.Contributions.FirstOrDefault(c => c.Id == id);
         if (contrib != null)
         {
@@ -205,6 +247,7 @@ public class AdminController : Controller
     [HttpPost]
     public IActionResult DeleteExpense(int id)
     {
+        if (!HasPermission(u => u.CanDelete)) return Forbid();
         var exp = _context.Expenses.FirstOrDefault(e => e.Id == id);
         if (exp != null)
         {
@@ -219,6 +262,7 @@ public class AdminController : Controller
     [HttpPost]
     public IActionResult RestoreMember(int id)
     {
+        if (!HasPermission(u => u.CanDelete)) return Forbid();
         var member = _context.Members
             .Include(m => m.Contributions)
             .FirstOrDefault(m => m.Id == id);
@@ -241,6 +285,7 @@ public class AdminController : Controller
     [HttpPost]
     public IActionResult RestoreContribution(int id)
     {
+        if (!HasPermission(u => u.CanDelete)) return Forbid();
         var c = _context.Contributions.FirstOrDefault(x => x.Id == id);
         if (c != null)
         {
@@ -255,6 +300,7 @@ public class AdminController : Controller
     [HttpPost]
     public IActionResult RestoreExpense(int id)
     {
+        if (!HasPermission(u => u.CanDelete)) return Forbid();
         var e = _context.Expenses.FirstOrDefault(x => x.Id == id);
         if (e != null)
         {
@@ -269,6 +315,7 @@ public class AdminController : Controller
     [HttpPost]
     public IActionResult HardDeleteExpense(int id)
     {
+        if (!HasPermission(u => u.CanDelete)) return Forbid();
         var e = _context.Expenses.FirstOrDefault(x => x.Id == id);
         if (e != null)
         {

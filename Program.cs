@@ -1,6 +1,8 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using SocietyApp.Data;
+using SocietyApp.Models;
 using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -52,7 +54,28 @@ catch (Exception ex)
         throw; // fail startup so Render shows the full error
     }
 }
-
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    if (!db.AdminUsers.Any())
+    {
+        var hasher = new PasswordHasher<AdminUser>();
+        var admin = new AdminUser
+        {
+            Username = "himanshu",
+            IsSuperAdmin = true,
+            CanAddMember = true,
+            CanAddContribution = true,
+            CanAddExpense = true,
+            CanView = true,
+            CanDelete = true
+        };
+        admin.PasswordHash = hasher.HashPassword(admin, "ChangeThisPassword123!"); // change after first login
+        db.AdminUsers.Add(admin);
+        db.SaveChanges();
+        Console.WriteLine("Seeded initial admin user: admin");
+    }
+}
 app.UseStaticFiles();
 app.UseRouting();
 app.UseSession();
