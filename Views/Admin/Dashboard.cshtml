@@ -1,0 +1,28 @@
+﻿<h2>Admin Dashboard</h2>
+
+<h3>Add Member</h3>
+<form method="post" action="/Admin/AddMember">
+    <input name="name" placeholder="Name" />
+    <input name="phone" placeholder="Phone" />
+    <input name="totalToGive" type="number" placeholder="Total To Give" />
+    <button type="submit">Add</button>
+</form>
+
+<h3>Add Contribution</h3>
+<form method="post" action="/Admin/AddContribution">
+    <select name="memberId">
+        @foreach (var m in ViewBag.Members)
+        {
+            <option value="@m.Id">@m.Name</option>
+        }
+    </select>
+    <input name="amount" type="number" placeholder="Amount" />
+    <button type="submit">Add</button>
+</form>
+
+<h3>Add Expense</h3>
+<form method="post" action="/Admin/AddExpense">
+    <input name="comment" placeholder="Comment" />
+    <input name="amount" type="number" placeholder="Amount" />
+    <button type="submit">Add</button>
+</form>

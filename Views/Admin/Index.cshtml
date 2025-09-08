@@ -1,0 +1,8 @@
+﻿<form method="post">
+    <input type="password" name="password" placeholder="Enter Admin Password" />
+    <button type="submit">Login</button>
+</form>
+@if (ViewBag.Error != null)
+{
+    <p style="color:red">@ViewBag.Error</p>
+}

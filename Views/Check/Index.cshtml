@@ -1,0 +1,9 @@
+﻿<form method="post">
+    <label>Enter Phone Number:</label>
+    <input type="text" name="phone" />
+    <button type="submit">Check</button>
+</form>
+@if (ViewBag.Error != null)
+{
+    <p style="color:red">@ViewBag.Error</p>
+}
