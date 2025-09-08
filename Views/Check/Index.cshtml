@@ -1,9 +1,32 @@
-﻿<form method="post">
-    <label>Enter Phone Number:</label>
-    <input type="text" name="phone" />
-    <button type="submit">Check</button>
-</form>
-@if (ViewBag.Error != null)
-{
-    <p style="color:red">@ViewBag.Error</p>
+﻿@{
+    ViewData["Title"] = "Check";
 }
+<div class="row justify-content-center">
+    <div class="col-12 col-sm-10 col-md-7 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Check Your Account</h5>
+                <p class="small-muted">Enter your phone number to view contributions and society details.</p>
+
+                <form method="post" class="mb-0">
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone number</label>
+                        <input id="phone" name="phone" type="tel" class="form-control" placeholder="e.g. 9876543210" required />
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Check</button>
+                    </div>
+                </form>
+
+                @if(ViewBag.Error != null) {
+                    <div class="alert alert-danger mt-3 mb-0">@ViewBag.Error</div>
+                }
+            </div>
+        </div>
+
+        <div class="text-center mt-3 small-muted">
+            <small>Privacy: Only your phone is required. No signup.</small>
+        </div>
+    </div>
+</div>

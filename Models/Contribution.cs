@@ -7,5 +7,7 @@
         public  Member Member { get; set; }
         public decimal Amount { get; set; }
         public DateTime Date { get; set; }
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
     }
 }

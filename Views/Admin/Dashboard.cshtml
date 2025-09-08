@@ -1,28 +1,447 @@
-﻿<h2>Admin Dashboard</h2>
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+    var members = ViewBag.Members as List<SocietyApp.Models.Member> ?? new List<SocietyApp.Models.Member>();
+    var expenses = ViewBag.Expenses as List<SocietyApp.Models.Expense> ?? new List<SocietyApp.Models.Expense>();
+}
+<div class="row">
+    <div class="col-12 mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4>Admin Dashboard</h4>
+            <a class="btn btn-outline-secondary" href="/Admin/Logout">Logout</a>
+        </div>
+    </div>
 
-<h3>Add Member</h3>
-<form method="post" action="/Admin/AddMember">
-    <input name="name" placeholder="Name" />
-    <input name="phone" placeholder="Phone" />
-    <input name="totalToGive" type="number" placeholder="Total To Give" />
-    <button type="submit">Add</button>
-</form>
+    <div class="col-12">
+        <div class="accordion" id="adminAccord">
+            <!-- Add Member -->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#addMember">Add Member</button>
+                </h2>
+                <div id="addMember" class="accordion-collapse collapse show" data-bs-parent="#adminAccord">
+                    <div class="accordion-body">
+                        <form method="post" action="/Admin/AddMember">
+                            <div class="row g-2">
+                                <div class="col-12 col-md-6">
+                                    <input name="name" class="form-control" placeholder="Name" required />
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <input name="phone" class="form-control" placeholder="Phone" required />
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <input name="houseNumber" class="form-control" placeholder="House Number" />
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <input name="monthlyAmount" type="number" step="0.01" class="form-control" placeholder="Monthly Amount" required />
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label visually-hidden">Start Month</label>
+                                    <input name="startDate" type="month" class="form-control" value="@DateTime.Now.ToString("yyyy-MM")" />
+                                    <!-- HTML type month lets admin pick year-month (supported in modern mobile browsers) -->
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <input name="totalToGive" type="number" step="0.01" class="form-control" placeholder="Total To Give" required />
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-grid"><button class="btn btn-success">Add Member</button></div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
 
-<h3>Add Contribution</h3>
-<form method="post" action="/Admin/AddContribution">
-    <select name="memberId">
-        @foreach (var m in ViewBag.Members)
-        {
-            <option value="@m.Id">@m.Name</option>
-        }
-    </select>
-    <input name="amount" type="number" placeholder="Amount" />
-    <button type="submit">Add</button>
-</form>
+            <!-- Add Contribution -->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#addContrib">Add Contribution</button>
+                </h2>
+                <div id="addContrib" class="accordion-collapse collapse" data-bs-parent="#adminAccord">
+                    <div class="accordion-body">
+                        <form method="post" action="/Admin/AddContribution">
+                            <div class="row g-2">
+                                <div class="col-12">
+                                    <select name="memberId" class="form-select" required>
+                                        <option value="">Select Member</option>
+                                        @foreach (var m in members)
+                                        {
+                                            <option value="@m.Id">@m.Name (@m.Phone) - @m.HouseNumber</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <input name="amount" type="number" step="0.01" class="form-control" placeholder="Amount" required />
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <input name="date" type="date" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-grid"><button class="btn btn-primary">Add Contribution</button></div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
 
-<h3>Add Expense</h3>
-<form method="post" action="/Admin/AddExpense">
-    <input name="comment" placeholder="Comment" />
-    <input name="amount" type="number" placeholder="Amount" />
-    <button type="submit">Add</button>
-</form>
+            <!-- Add Expense -->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#addExpense">Add Expense</button>
+                </h2>
+                <div id="addExpense" class="accordion-collapse collapse" data-bs-parent="#adminAccord">
+                    <div class="accordion-body">
+                        <form method="post" action="/Admin/AddExpense">
+                            <div class="row g-2">
+                                <div class="col-12">
+                                    <input name="comment" class="form-control" placeholder="Comment" required />
+                                </div>
+                                <div class="col-12">
+                                    <input name="amount" type="number" step="0.01" class="form-control" placeholder="Amount" required />
+                                </div>
+                                <div class="col-12 col-md-3">
+                                    <input name="date" type="date" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-grid"><button class="btn btn-danger">Add Expense</button></div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Members list -->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#membersList">Members</button>
+                </h2>
+                <div id="membersList" class="accordion-collapse collapse" data-bs-parent="#adminAccord">
+                    <div class="accordion-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr><th>Name</th><th>Phone</th><th>House</th><th>Monthly</th><th>Start</th><th></th></tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var m in members)
+                                    {
+                                        <tr>
+                                            <td>@m.Name</td>
+                                            <td>@m.Phone</td>
+                                            <td>@m.HouseNumber</td>
+                                            <td class="text-end">@String.Format("{0:C}", m.MonthlyAmount)</td>
+                                            <td>@m.StartDate.ToString("yyyy-MM")</td>
+                                            <td>
+                                                @if (!m.IsDeleted)
+                                                {
+                                                    <!-- Active Member: show Edit + Delete -->
+                                                    <button class="btn btn-sm btn-outline-primary"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editMemberModal@(m.Id)">
+                                                        ✏ Edit
+                                                    </button>
+
+                                                    <button class="btn btn-sm btn-outline-danger"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#deleteMemberModal@(m.Id)">
+                                                        🗑 Delete
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <!-- Deleted Member: show Restore -->
+                                                    <form method="post" action="/Admin/RestoreMember" class="d-inline">
+                                                        <input type="hidden" name="id" value="@m.Id" />
+                                                        <button type="submit" class="btn btn-sm btn-outline-success">↺ Restore</button>
+                                                    </form>
+
+                                                    <!-- Optional: Permanent Delete -->
+                                                    <form method="post" action="/Admin/HardDeleteMember" class="d-inline ms-1">
+                                                        <input type="hidden" name="id" value="@m.Id" />
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">❌ Delete Permanently</button>
+                                                    </form>
+                                                }
+
+                                            </td>
+                                        </tr>
+
+                                        <!-- Edit Member Modal -->
+                                        <div class="modal fade" id="editMemberModal@(m.Id)" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <form method="post" action="/Admin/EditMember">
+                                                        <div class="modal-header"><h5>Edit Member</h5></div>
+                                                        <div class="modal-body">
+                                                            <input type="hidden" name="id" value="@m.Id" />
+                                                            <div class="mb-2"><input class="form-control" name="name" value="@m.Name" /></div>
+                                                            <div class="mb-2"><input class="form-control" name="phone" value="@m.Phone" /></div>
+                                                            <div class="mb-2"><input class="form-control" name="houseNumber" value="@m.HouseNumber" /></div>
+                                                            <div class="mb-2"><input class="form-control" type="number" step="0.01" name="monthlyAmount" value="@m.MonthlyAmount" /></div>
+                                                            <div class="mb-2"><input class="form-control" type="month" name="startDate" value="@m.StartDate.ToString("yyyy-MM")" /></div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-primary">Save</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Delete Member Modal -->
+                                        <div class="modal fade" id="deleteMemberModal@(m.Id)" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <form method="post" action="/Admin/DeleteMember">
+                                                        <input type="hidden" name="id" value="@m.Id" />
+                                                        <div class="modal-header"><h5>Delete Member</h5></div>
+                                                        <div class="modal-body">
+                                                            <p>Are you sure you want to delete <strong>@m.Name</strong> and all their contributions?</p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expenses list -->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#expensesList">Expenses</button>
+                </h2>
+                <div id="expensesList" class="accordion-collapse collapse" data-bs-parent="#adminAccord">
+                    <div class="accordion-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead><tr><th>Date</th><th>Comment</th><th class="text-end">Amount</th><th></th></tr></thead>
+                                <tbody>
+                                    @foreach (var e in expenses.OrderByDescending(x => x.Date))
+                                    {
+                                        <tr>
+                                            <td>@e.Date.ToString("yyyy-MM-dd")</td>
+                                            <td>@e.Comment</td>
+                                            <td class="text-end">@String.Format("{0:C}", e.Amount)</td>
+                                            <td>
+                                                @if (!e.IsDeleted)
+                                                {
+                                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editExpenseModal@(e.Id)">✏ Edit</button>
+                                                    <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteExpenseModal@(e.Id)">🗑 Delete</button>
+                                                }
+                                                else
+                                                {
+                                                    <form method="post" action="/Admin/RestoreExpense" class="d-inline">
+                                                        <input type="hidden" name="id" value="@e.Id" />
+                                                        <button class="btn btn-sm btn-outline-success">↺ Restore</button>
+                                                    </form>
+
+                                                    <!-- optional hard-delete -->
+                                                    <form method="post" action="/Admin/HardDeleteExpense" class="d-inline ms-1">
+                                                        <input type="hidden" name="id" value="@e.Id" />
+                                                        <button class="btn btn-sm btn-outline-danger">Delete Permanently</button>
+                                                    </form>
+                                                }
+                                            </td>
+                                        </tr>
+
+                                        <!-- Edit Expense Modal -->
+                                        <div class="modal fade" id="editExpenseModal@(e.Id)" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <form method="post" action="/Admin/EditExpense">
+                                                        <div class="modal-header"><h5>Edit Expense</h5></div>
+                                                        <div class="modal-body">
+                                                            <input type="hidden" name="id" value="@e.Id" />
+                                                            <div class="mb-2"><input class="form-control" name="comment" value="@e.Comment" /></div>
+                                                            <div class="mb-2"><input class="form-control" type="number" step="0.01" name="amount" value="@e.Amount" /></div>
+                                                            <div class="mb-2">
+                                                                <label class="form-label">Date</label>
+                                                                <input class="form-control" type="date" name="date" value="@e.Date.ToString("yyyy-MM-dd")" />
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-primary">Save</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Delete Expense Modal -->
+                                        <div class="modal fade" id="deleteExpenseModal@(e.Id)" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <form method="post" action="/Admin/DeleteExpense">
+                                                        <input type="hidden" name="id" value="@e.Id" />
+                                                        <div class="modal-header"><h5>Delete Expense</h5></div>
+                                                        <div class="modal-body">
+                                                            <p>Are you sure you want to delete expense <strong>@e.Comment</strong> (₹@e.Amount)?</p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Contributions List -->
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#contribList">
+                        Contributions
+                    </button>
+                </h2>
+                <div id="contribList" class="accordion-collapse collapse" data-bs-parent="#adminAccord">
+                    <div class="accordion-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Member</th>
+                                        <th>House</th>
+                                        <th class="text-end">Amount</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (ViewBag.Contributions != null && ((List<SocietyApp.Models.Contribution>)ViewBag.Contributions).Count > 0)
+                                    {
+                                        var contributions = (List<SocietyApp.Models.Contribution>)ViewBag.Contributions;
+                                        foreach (var c in contributions)
+                                        {
+                                            <tr>
+                                                <td>@c.Date.ToString("yyyy-MM-dd")</td>
+                                                <td>@(c.Member?.Name ?? "—")</td>
+                                                <td>@(c.Member?.HouseNumber ?? "—")</td>
+                                                <td class="text-end">@String.Format("{0:C}", c.Amount)</td>
+                                                <td class="text-end">
+                                                    <button class="btn btn-sm btn-outline-primary me-1"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editContributionModal@(c.Id)">
+                                                        ✏ Edit
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#deleteContributionModal@(c.Id)">
+                                                        🗑 Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+
+                                            <!-- Edit Contribution Modal -->
+                                            <div class="modal fade" id="editContributionModal@(c.Id)" tabindex="-1">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <form method="post" action="/Admin/EditContribution">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title">Edit Contribution</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <input type="hidden" name="id" value="@c.Id" />
+                                                                <div class="mb-2">
+                                                                    <label class="form-label">Member</label>
+                                                                    <input class="form-control" value="@(c.Member?.Name ?? "—")" disabled />
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <label class="form-label">Amount</label>
+                                                                    <input class="form-control" type="number" step="0.01" name="amount" value="@c.Amount" required />
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <label class="form-label">Date</label>
+                                                                    <input class="form-control" type="date" name="date" value="@c.Date.ToString("yyyy-MM-dd")" />
+                                                                </div>
+
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                <button type="submit" class="btn btn-primary">Save</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Delete Contribution Modal -->
+                                            <div class="modal fade" id="deleteContributionModal@(c.Id)" tabindex="-1">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <form method="post" action="/Admin/DeleteContribution">
+                                                            <input type="hidden" name="id" value="@c.Id" />
+                                                            <div class="modal-header"><h5>Delete Contribution</h5></div>
+                                                            <div class="modal-body">
+                                                                <p>Are you sure you want to delete this contribution of <strong>₹@c.Amount</strong> dated @c.Date.ToString("yyyy-MM-dd")?</p>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                @if (!c.IsDeleted)
+                                                                {
+                                                                    <button class="btn btn-sm btn-outline-primary"
+                                                                            data-bs-toggle="modal"
+                                                                            data-bs-target="#editContributionModal@(c.Id)">
+                                                                        ✏ Edit
+                                                                    </button>
+
+                                                                    <button class="btn btn-sm btn-outline-danger"
+                                                                            data-bs-toggle="modal"
+                                                                            data-bs-target="#deleteContributionModal@(c.Id)">
+                                                                        🗑 Delete
+                                                                    </button>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <form method="post" action="/Admin/RestoreContribution" class="d-inline">
+                                                                        <input type="hidden" name="id" value="@c.Id" />
+                                                                        <button class="btn btn-sm btn-outline-success">↺ Restore</button>
+                                                                    </form>
+
+                                                                    <!-- optional hard-delete -->
+                                                                    <form method="post" action="/Admin/HardDeleteContribution" class="d-inline ms-1">
+                                                                        <input type="hidden" name="id" value="@c.Id" />
+                                                                        <button class="btn btn-sm btn-outline-danger">Delete Permanently</button>
+                                                                    </form>
+                                                                }
+
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr><td colspan="5" class="text-center text-muted">No contributions recorded.</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</div>

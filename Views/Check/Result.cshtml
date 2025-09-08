@@ -1,26 +1,133 @@
-﻿<h2>Hello @Model.Name</h2>
-<p>Phone: @Model.Phone</p>
-<p>Total Given: @ViewBag.TotalGiven</p>
-<p>Pending: @ViewBag.Pending</p>
+﻿@model SocietyApp.Models.Member
+@{
+    var monthRows = ViewBag.MonthRows as List<dynamic> ?? new List<dynamic>();
+}
 
-<h3>Your Contributions</h3>
-<table border="1">
-    <tr><th>Date</th><th>Amount</th></tr>
-    @foreach (var c in Model.Contributions)
-    {
-        <tr><td>@c.Date.ToShortDateString()</td><td>@c.Amount</td></tr>
-    }
-</table>
+<!-- Header Card -->
+<div class="card mb-3 shadow-sm">
+    <div class="card-body">
+        <h5 class="mb-1">@Model.Name <small class="text-muted">(H.No. @Model.HouseNumber)</small></h5>
+        <div class="small-muted">Phone: @Model.Phone</div>
+        <div class="small-muted">Start Month: @Model.StartDate.ToString("yyyy-MM")</div>
+        <div class="small-muted">Monthly Amount: @String.Format("{0:C}", Model.MonthlyAmount)</div>
+    </div>
+</div>
 
-<h3>Society Expenses</h3>
-<table border="1">
-    <tr><th>Date</th><th>Comment</th><th>Amount</th></tr>
-    @foreach (var e in ViewBag.Expenses)
-    {
-        <tr><td>@e.Date.ToShortDateString()</td><td>@e.Comment</td><td>@e.Amount</td></tr>
-    }
-</table>
+<!-- 🔹 Big Summary Tiles -->
+<div class="row">
+    <div class="col-12 col-md-4 mb-3">
+        <div class="card card-compact shadow-sm">
+            <div class="card-body">
+                <div class="small-muted">Total Due</div>
+                <div class="h5">@String.Format("{0:C}", ViewBag.TotalDue)</div>
+            </div>
+        </div>
+    </div>
 
-<p>Total Society Get: @ViewBag.SocietyTotalGet</p>
-<p>Total Spent: @ViewBag.SocietySpent</p>
-<p>Balance: @ViewBag.Balance</p>
+    <div class="col-12 col-md-4 mb-3">
+        <div class="card card-compact shadow-sm">
+            <div class="card-body">
+                <div class="small-muted">Total Paid</div>
+                <div class="h5 text-success">@String.Format("{0:C}", ViewBag.TotalPaid)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-4 mb-3">
+        <div class="card card-compact shadow-sm">
+            <div class="card-body">
+                <div class="small-muted">Pending</div>
+                <div class="h5 text-danger">@String.Format("{0:C}", ViewBag.Pending)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🔹 Society Summary -->
+<div class="row">
+    <div class="col-12 mb-3">
+        <div class="card card-compact shadow-sm">
+            <div class="card-body">
+                <div class="small-muted">Society Balance</div>
+                <div class="h5">@String.Format("{0:C}", ViewBag.SocietyBalance)</div>
+                <div class="small-muted">
+                    Received: @String.Format("{0:C}", ViewBag.SocietyTotalGet) •
+                    Spent: @String.Format("{0:C}", ViewBag.SocietySpent)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@{
+    var contributions = ViewBag.PersonContributions as List<SocietyApp.Models.Contribution>
+                        ?? new List<SocietyApp.Models.Contribution>();
+}
+
+<div class="card mb-3">
+    <div class="card-header"><strong>Your Contributions</strong></div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead><tr><th>Date</th><th class="text-end">Amount</th></tr></thead>
+                <tbody>
+                    @if (contributions.Count == 0)
+                    {
+                        <tr><td colspan="2" class="text-center small-muted">No contributions recorded.</td></tr>
+                    }
+                    else
+                    {
+                        foreach (var c in contributions)
+                        {
+                            <tr>
+                                <td>@c.Date.ToString("yyyy-MM-dd")</td>
+                                <td class="text-end">@String.Format("{0:C}", c.Amount)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+@{
+    var expenses = ViewBag.SocietyExpenses as List<SocietyApp.Models.Expense> ?? new List<SocietyApp.Models.Expense>();
+}
+
+<div class="card mb-3">
+    <div class="card-header"><strong>Society Expenses</strong></div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm table-striped mb-0">
+                <thead class="table-light">
+                    <tr><th>Date</th><th>Comment</th><th class="text-end">Amount</th></tr>
+                </thead>
+                <tbody>
+                    @if (expenses.Count == 0)
+                    {
+                        <tr><td colspan="3" class="text-center small-muted">No expenses recorded.</td></tr>
+                    }
+                    else
+                    {
+                        foreach (var e in expenses)
+                        {
+                            <tr>
+                                <td>@e.Date.ToString("yyyy-MM-dd")</td>
+                                <td>@e.Comment</td>
+                                <td class="text-end">@String.Format("{0:C}", e.Amount)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="2">Total Spent</th>
+                        <th class="text-end">@String.Format("{0:C}", ViewBag.SocietySpent)</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
